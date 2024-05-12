@@ -23,7 +23,7 @@ provider "azurerm" {
 }
 
 locals {
-  test_regions = ["eastus", "eastus2", "westu2", "westus3"]
+  test_regions = ["eastus", "eastus2", "westus2", "westus3"]
 }
 # This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
@@ -224,12 +224,11 @@ module "this" {
       # the name must be set to avoid conflicting resources.
       name                          = "pe-${endpoint}-${module.naming.storage_account.name_unique}"
       subnet_resource_id            = azurerm_subnet.private.id
-      subresource_name              = [endpoint]
+      subresource_names             = [endpoint]
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.this[endpoint].id]
       # these are optional but illustrate making well-aligned service connection & NIC names.
       private_service_connection_name = "psc-${endpoint}-${module.naming.storage_account.name_unique}"
       network_interface_name          = "nic-pe-${endpoint}-${module.naming.storage_account.name_unique}"
-      inherit_tags                    = false
       inherit_lock                    = false
 
       tags = {

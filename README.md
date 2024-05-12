@@ -19,32 +19,34 @@ This Terraform module is designed to create Azure Storage Accounts and its relat
 * The storage account name must be globally unique.
 * The module creates resources in the same region as the storage account.
 
+> **IMPORTANT** We recommend using Azure AD authentication over Shared Key for provisioning Storage Containers, Blobs, and other items. To achieve this, add the `storage_use_azuread` flag in the Provider block. However, it’s important to note that not all Azure Storage services support Active Directory authentication.(https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) In the absence of the `storage_use_azuread` flag, you will need to enable Shared Key Access by setting the `shared_access_key_enabled` flag `True`.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.0)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (>= 1.9.0, < 2.0.0)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 1.13)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.71.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.100)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
-- <a name="requirement_time"></a> [time](#requirement\_time) (>= 0.9.1, < 2.0.0)
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9.1)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azapi"></a> [azapi](#provider\_azapi) (>= 1.9.0, < 2.0.0)
+- <a name="provider_azapi"></a> [azapi](#provider\_azapi) (~> 1.13)
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.71.0, < 4.0.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.100)
 
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
+- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
-- <a name="provider_time"></a> [time](#provider\_time) (>= 0.9.1, < 2.0.0)
+- <a name="provider_time"></a> [time](#provider\_time) (~> 0.9.1)
 
 ## Resources
 
@@ -78,7 +80,6 @@ The following resources are used by this module:
 - [time_sleep.wait_for_rbac_before_queue_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_share_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_table_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
-- [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_resource_group.rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -124,7 +125,7 @@ Description: (Required) Defines the type of replication to use for this storage 
 
 Type: `string`
 
-Default: `"RAGZRS"`
+Default: `"ZRS"`
 
 ### <a name="input_account_tier"></a> [account\_tier](#input\_account\_tier)
 
@@ -277,7 +278,6 @@ Supply role assignments in the same way as for `var.role_assignments`.
 - `create` - (Defaults to 30 minutes) Used when creating the Storage Container.
 - `delete` - (Defaults to 30 minutes) Used when deleting the Storage Container.
 - `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container.
-- `update` - (Defaults to 30 minutes) Used when updating the Storage Container.
 
 Type:
 
@@ -301,7 +301,6 @@ map(object({
       create = optional(string)
       delete = optional(string)
       read   = optional(string)
-      update = optional(string)
     }))
   }))
 ```
@@ -356,10 +355,12 @@ Type:
 
 ```hcl
 object({
-    key_vault_resource_id              = string
-    key_name                           = string
-    key_version                        = optional(string, null)
-    user_assigned_identity_resource_id = string
+    key_vault_resource_id = string
+    key_name              = string
+    key_version           = optional(string, null)
+    user_assigned_identity = optional(object({
+      resource_id = string
+    }), null)
   })
 ```
 
@@ -605,43 +606,6 @@ Type: `bool`
 
 Default: `null`
 
-### <a name="input_key_vault_access_policy"></a> [key\_vault\_access\_policy](#input\_key\_vault\_access\_policy)
-
-Description: Since storage account's customer managed key might require key vault permission, you can create the corresponding permission by setting this variable.
-
-- `key_permissions` - (Optional) A map of list of key permissions, key is user assigned identity id, the element in value list must be one or more from the following: `Backup`, `Create`, `Decrypt`, Delete, `Encrypt`, `Get`, `Import`, `List`, `Purge`, `Recover`, `Restore`, `Sign`, `UnwrapKey`, `Update`, `Verify`, `WrapKey`, `Release`, `Rotate`, `GetRotationPolicy` and `SetRotationPolicy`. Defaults to `["Get", "UnwrapKey", "WrapKey"]`
-- `identity_principle_id` - (Required) The principal ID of managed identity. Changing this forces a new resource to be created.
-- `identity_tenant_id` - (Required) The tenant ID of managed identity. Changing this forces a new resource to be created.
-
----
-`timeouts` block supports the following:
-- `create` - (Defaults to 30 minutes) Used when creating the Key Vault Access Policy.
-- `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Access Policy.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Access Policy.
-- `update` - (Defaults to 30 minutes) Used when updating the Key Vault Access Policy.
-
-Type:
-
-```hcl
-map(object({
-    key_permissions = optional(list(string), [
-      "Get",
-      "UnwrapKey",
-      "WrapKey"
-    ])
-    identity_principle_id = string
-    identity_tenant_id    = string
-    timeouts = optional(object({
-      create = optional(string)
-      delete = optional(string)
-      read   = optional(string)
-      update = optional(string)
-    }))
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_large_file_share_enabled"></a> [large\_file\_share\_enabled](#input\_large\_file\_share\_enabled)
 
 Description: (Optional) Is Large File Share Enabled?
@@ -734,11 +698,11 @@ Type:
 ```hcl
 object({
     name = optional(string, null)
-    kind = optional(string, "None")
+    kind = string
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
@@ -828,7 +792,7 @@ Description: A map of private endpoints to create on the resource. The map key i
 - `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
 - `tags` - (Optional) A mapping of tags to assign to the private endpoint.
 - `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
-- `subresource_name` - The service name of the private endpoint.  Possible value are `blob`, 'dfs', 'file', `queue`, `table`, and `web`.
+- `subresource_names` - A list of service name of the private endpoint.  Possible value are `blob`, 'dfs', 'file', `queue`, `table`, and `web`.
 - `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
 - `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
 - `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -839,6 +803,7 @@ Description: A map of private endpoints to create on the resource. The map key i
 - `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
+  - `subresource_name` -  The subresource this IP address applies to.
 
 Type:
 
@@ -855,23 +820,23 @@ map(object({
       delegated_managed_identity_resource_id = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, null)
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
-    subresource_name                        = list(string)
+    subresource_names                       = list(string)
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_associations = optional(map(string), {})
     private_service_connection_name         = optional(string, null)
     network_interface_name                  = optional(string, null)
     location                                = optional(string, null)
-    inherit_tags                            = optional(bool, false)
     resource_group_name                     = optional(string, null)
     ip_configurations = optional(map(object({
       name               = string
       private_ip_address = string
+      subresource_name   = string
     })), {})
   }))
 ```
@@ -1332,7 +1297,7 @@ Description: Custom tags to apply to the resource.
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
 
