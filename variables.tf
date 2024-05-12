@@ -93,6 +93,7 @@ variable "managed_identities" {
 }
 
 variable "private_endpoints" {
+  # tflint-ignore: private_endpoints
   type = map(object({
     name = optional(string, null)
     role_assignments = optional(map(object({
