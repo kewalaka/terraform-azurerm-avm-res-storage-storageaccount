@@ -1,7 +1,7 @@
 resource "azurerm_storage_management_policy" "this" {
   for_each = var.storage_management_policy_rule
 
-  storage_account_id = azurerm_storage_account.this.id
+  storage_account_id = azapi_resource.storage_account.id
 
   dynamic "rule" {
     for_each = var.storage_management_policy_rule

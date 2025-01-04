@@ -20,4 +20,6 @@ terraform {
   }
 }
 
-
+provider "azapi" {
+  enable_preflight = true
+}

@@ -2,7 +2,7 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "this" {
   count = var.storage_data_lake_gen2_filesystem != null ? 1 : 0
 
   name                     = var.storage_data_lake_gen2_filesystem.name
-  storage_account_id       = azurerm_storage_account.this.id
+  storage_account_id       = azapi_resource.storage_account.id
   default_encryption_scope = var.storage_data_lake_gen2_filesystem.default_encryption_scope
   group                    = var.storage_data_lake_gen2_filesystem.group
   owner                    = var.storage_data_lake_gen2_filesystem.owner
@@ -29,6 +29,6 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "this" {
     }
   }
 
-  depends_on = [azurerm_storage_account.this]
+  depends_on = [azapi_resource.storage_account]
 }
 

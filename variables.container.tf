@@ -86,7 +86,8 @@ variable "blob_properties" {
       max_age_in_seconds = number
     })))
     delete_retention_policy = optional(object({
-      days = optional(number, 7)
+      days                     = optional(number, 7)
+      permanent_delete_enabled = optional(bool, false)
     }), { days = 7 })
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)

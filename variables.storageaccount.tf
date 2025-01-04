@@ -184,7 +184,14 @@ variable "network_rules" {
       update = optional(string)
     }))
   })
-  default = {}
+  default = {
+    bypass                     = ["None"]
+    default_action             = "Deny"
+    ip_rules                   = []
+    virtual_network_subnet_ids = []
+    private_link_access        = []
+    timeouts                   = null
+  }
 
   description = <<-EOT
  > Note the default value for this variable will block all public access to the storage account. If you want to disable all network rules, set this value to `null`.

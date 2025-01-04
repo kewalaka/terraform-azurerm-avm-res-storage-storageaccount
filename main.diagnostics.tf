@@ -4,7 +4,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_account" {
   for_each = var.diagnostic_settings_storage_account == null ? {} : var.diagnostic_settings_storage_account
 
   name                           = each.value.name
-  target_resource_id             = azurerm_storage_account.this.id
+  target_resource_id             = azapi_resource.storage_account.id
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_workspace_id     = each.value.workspace_resource_id
@@ -22,7 +22,7 @@ resource "azurerm_monitor_diagnostic_setting" "blob" {
   for_each = var.diagnostic_settings_blob == null ? {} : var.diagnostic_settings_blob
 
   name                           = each.value.name
-  target_resource_id             = "${azurerm_storage_account.this.id}/blobServices/default/"
+  target_resource_id             = "${azapi_resource.storage_account.id}/blobServices/default/"
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_workspace_id     = each.value.workspace_resource_id
@@ -48,7 +48,7 @@ resource "azurerm_monitor_diagnostic_setting" "queue" {
   for_each = var.diagnostic_settings_queue == null ? {} : var.diagnostic_settings_queue
 
   name                           = each.value.name
-  target_resource_id             = "${azurerm_storage_account.this.id}/queueServices/default/"
+  target_resource_id             = "${azapi_resource.storage_account.id}/queueServices/default/"
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_workspace_id     = each.value.workspace_resource_id
@@ -73,7 +73,7 @@ resource "azurerm_monitor_diagnostic_setting" "table" {
   for_each = var.diagnostic_settings_table == null ? {} : var.diagnostic_settings_table
 
   name                           = each.value.name
-  target_resource_id             = "${azurerm_storage_account.this.id}/tableServices/default/"
+  target_resource_id             = "${azapi_resource.storage_account.id}/tableServices/default/"
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_workspace_id     = each.value.workspace_resource_id
@@ -98,7 +98,7 @@ resource "azurerm_monitor_diagnostic_setting" "azure_file" {
   for_each = var.diagnostic_settings_file == null ? {} : var.diagnostic_settings_file
 
   name                           = each.value.name
-  target_resource_id             = "${azurerm_storage_account.this.id}/fileServices/default/"
+  target_resource_id             = "${azapi_resource.storage_account.id}/fileServices/default/"
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_workspace_id     = each.value.workspace_resource_id

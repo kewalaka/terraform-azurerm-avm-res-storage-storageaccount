@@ -133,8 +133,9 @@ EOT
 
 variable "large_file_share_enabled" {
   type        = bool
-  default     = null
+  default     = false
   description = "(Optional) Is Large File Share Enabled?"
+  nullable    = false
 }
 
 variable "azure_files_authentication" {

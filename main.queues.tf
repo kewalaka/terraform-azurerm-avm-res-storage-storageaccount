@@ -8,7 +8,7 @@ resource "azapi_resource" "queue" {
     }
   }
   name                      = each.value.name
-  parent_id                 = "${azurerm_storage_account.this.id}/queueServices/default"
+  parent_id                 = "${azapi_resource.storage_account.id}/queueServices/default"
   schema_validation_enabled = false
 
   dynamic "timeouts" {
@@ -21,7 +21,7 @@ resource "azapi_resource" "queue" {
     }
   }
 
-  depends_on = [azurerm_storage_account.this]
+  depends_on = [azapi_resource.storage_account]
 }
 
 # Enable role assignments for queues
@@ -29,7 +29,7 @@ resource "azurerm_role_assignment" "queues" {
   for_each = local.queues_role_assignments
 
   principal_id                           = each.value.role_assignment.principal_id
-  scope                                  = "${azurerm_storage_account.this.id}/queueServices/default/queues/${azapi_resource.queue[each.value.queue_key].name}"
+  scope                                  = "${azapi_resource.storage_account.id}/queueServices/default/queues/${azapi_resource.queue[each.value.queue_key].name}"
   condition                              = each.value.role_assignment.condition
   condition_version                      = each.value.role_assignment.condition_version
   delegated_managed_identity_resource_id = each.value.role_assignment.delegated_managed_identity_resource_id
