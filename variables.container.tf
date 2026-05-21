@@ -16,6 +16,15 @@ variable "containers" {
     immutable_storage_with_versioning = optional(object({
       enabled = bool
     }))
+    immutability_policy = optional(object({
+      allow_protected_append_writes     = optional(bool)
+      allow_protected_append_writes_all = optional(bool)
+      period_since_creation_in_days     = number
+      state                             = optional(string, "Unlocked")
+    }))
+    legal_hold = optional(object({
+      tags = list(string)
+    }))
 
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -48,6 +57,13 @@ A map of containers to create on the storage account. The map key is arbitrary; 
 - `enable_nfs_v3_root_squash` - (Optional) Enable NFSv3 root squash (only valid for NFSv3 enabled accounts). Defaults to `null`.
 - `immutable_storage_with_versioning` - (Optional) Configures container-level immutability with version-level WORM. Defaults to `null`. Supports:
   - `enabled` - (Required) Whether immutable storage with versioning is enabled.
+- `immutability_policy` - (Optional) A time-based immutability policy for the container. Defaults to `null`.
+  - `period_since_creation_in_days` - (Required) The immutability period in days.
+  - `state` - (Optional) Policy state. `Unlocked` (default, allows increases/decreases) or `Locked` (allows only increases, irreversible).
+  - `allow_protected_append_writes` - (Optional) Allow new blocks to be written to append blobs. Defaults to `null`.
+  - `allow_protected_append_writes_all` - (Optional) Allow new blocks to be written to both block and append blobs. Defaults to `null`.
+- `legal_hold` - (Optional) A legal hold for the container. Defaults to `null`.
+  - `tags` - (Required) A list of legal hold tags. Each tag must be alphanumeric, 3–23 chars.
 - `role_assignments` - (Optional) A map of role assignments to create on the container. Defaults to `{}`. See `var.role_assignments` for the attribute schema.
 - `timeouts` - (Optional) Per-operation timeouts for the container resource. Defaults to `null` (uses provider defaults inherited from `var.timeouts`). Supports:
   - `create` - (Optional) Timeout for create operations.

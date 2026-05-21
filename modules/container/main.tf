@@ -24,6 +24,51 @@ resource "azapi_resource" "this" {
   }
 }
 
+resource "azapi_resource" "immutability_policy" {
+  count = var.immutability_policy != null ? 1 : 0
+
+  name      = "default"
+  parent_id = azapi_resource.this.id
+  type      = var.container_immutability_policy_resource_type
+  body = {
+    properties = {
+      immutabilityPeriodSinceCreationInDays = var.immutability_policy.period_since_creation_in_days
+      allowProtectedAppendWrites            = var.immutability_policy.allow_protected_append_writes
+      allowProtectedAppendWritesAll         = var.immutability_policy.allow_protected_append_writes_all
+    }
+  }
+  create_headers         = local.tracing_headers
+  delete_headers         = local.tracing_headers
+  read_headers           = local.tracing_headers
+  response_export_values = []
+  retry                  = var.retry
+  update_headers         = local.tracing_headers
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+}
+
+resource "azapi_resource_action" "legal_hold_set" {
+  count = var.legal_hold != null ? 1 : 0
+
+  resource_id = azapi_resource.this.id
+  type        = var.resource_type
+  action      = "setLegalHold"
+  method      = "POST"
+  body = {
+    tags = var.legal_hold.tags
+  }
+  retry = var.retry
+}
+
 module "role_assignments" {
   # tflint-ignore: required_module_source_tffr1 # relative source is intentional: this is an in-module composition of the role_assignments submodule
   source = "../role_assignments"

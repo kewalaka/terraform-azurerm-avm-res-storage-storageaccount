@@ -10,6 +10,13 @@ variable "storage_account_id" {
   nullable    = false
 }
 
+variable "container_immutability_policy_resource_type" {
+  type        = string
+  default     = "Microsoft.Storage/storageAccounts/blobServices/containers/immutabilityPolicies@2025-06-01"
+  description = "(Optional) Override the AzAPI resource type for container immutability policies."
+  nullable    = false
+}
+
 variable "default_encryption_scope" {
   type        = string
   default     = null
@@ -43,6 +50,38 @@ variable "immutable_storage_with_versioning" {
 (Optional) Configures container-level immutability with version-level WORM. Defaults to `null` (immutability disabled).
 
 - `enabled` - (Required) Whether immutable storage with versioning is enabled.
+EOT
+}
+
+variable "immutability_policy" {
+  type = object({
+    allow_protected_append_writes     = optional(bool)
+    allow_protected_append_writes_all = optional(bool)
+    period_since_creation_in_days     = number
+    state                             = optional(string, "Unlocked")
+  })
+  default     = null
+  description = <<-EOT
+(Optional) A time-based immutability policy for the container. Defaults to `null`.
+
+- `period_since_creation_in_days` - (Required) The immutability period in days.
+- `state` - (Optional) `Unlocked` (can increase or decrease) or `Locked` (can only increase, irreversible). Defaults to `Unlocked`. Note: transitioning to `Locked` is irreversible and must be done manually via `azapi_resource_action` — this module manages the policy in `Unlocked` state only.
+- `allow_protected_append_writes` - (Optional) Allow appending to append blobs while under immutability. Defaults to `null`.
+- `allow_protected_append_writes_all` - (Optional) Allow appending to block and append blobs. Defaults to `null`.
+EOT
+}
+
+variable "legal_hold" {
+  type = object({
+    tags = list(string)
+  })
+  default     = null
+  description = <<-EOT
+(Optional) A legal hold placed on the container. Defaults to `null`.
+
+- `tags` - (Required) A list of legal hold tags. Each tag must be alphanumeric and 3–23 characters long.
+
+> **Note:** Legal hold is applied via a `setLegalHold` POST action. Clearing the hold on destroy is not supported by this module — removing `legal_hold` from configuration will NOT automatically call `clearLegalHold`. To remove a legal hold, call `clearLegalHold` manually (e.g., via Azure CLI or a one-off `azapi_resource_action`).
 EOT
 }
 
