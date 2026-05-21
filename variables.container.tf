@@ -16,6 +16,15 @@ variable "containers" {
     immutable_storage_with_versioning = optional(object({
       enabled = bool
     }))
+    immutability_policy = optional(object({
+      allow_protected_append_writes     = optional(bool)
+      allow_protected_append_writes_all = optional(bool)
+      period_since_creation_in_days     = number
+      state                             = optional(string, "Unlocked")
+    }))
+    legal_hold = optional(object({
+      tags = list(string)
+    }))
 
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -48,12 +57,49 @@ A map of containers to create on the storage account. The map key is arbitrary; 
 - `enable_nfs_v3_root_squash` - (Optional) Enable NFSv3 root squash (only valid for NFSv3 enabled accounts). Defaults to `null`.
 - `immutable_storage_with_versioning` - (Optional) Configures container-level immutability with version-level WORM. Defaults to `null`. Supports:
   - `enabled` - (Required) Whether immutable storage with versioning is enabled.
-- `role_assignments` - (Optional) A map of role assignments to create on the container. Defaults to `{}`. See `var.role_assignments` for the attribute schema.
+- `immutability_policy` - (Optional) A time-based immutability policy for the container. Defaults to `null`.
+  - `period_since_creation_in_days` - (Required) The immutability period in days.
+  - `state` - (Optional) Policy state. `Unlocked` (default, allows increases/decreases) or `Locked` (allows only increases, irreversible).
+  - `allow_protected_append_writes` - (Optional) Allow new blocks to be written to append blobs. Defaults to `null`.
+  - `allow_protected_append_writes_all` - (Optional) Allow new blocks to be written to both block and append blobs. Defaults to `null`.
+- `legal_hold` - (Optional) A legal hold for the container. Defaults to `null`.
+  - `tags` - (Required) A list of legal hold tags. Each tag must be alphanumeric, 3–23 chars.
+  > **Note:** Legal hold is applied via a `setLegalHold` POST action. Removing `legal_hold` from configuration does NOT automatically call `clearLegalHold` — clearing requires manual intervention.
+- `role_assignments` - (Optional) A map of role assignments to create on the container. Defaults to `{}`. Each entry supports:
+  - `role_definition_id_or_name` - (Required) The role definition ID or name.
+  - `principal_id` - (Required) The principal ID to assign the role to.
+  - `description` - (Optional) Description of the role assignment.
+  - `skip_service_principal_aad_check` - (Optional) Skip the Azure Active Directory check for service principals. Defaults to `false`.
+  - `condition` - (Optional) The condition expression limiting the resources the role can be assigned to.
+  - `condition_version` - (Optional) The condition version.
+  - `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id containing a Managed Identity.
+  - `principal_type` - (Optional) The type of principal (`User`, `Group`, `ServicePrincipal`).
 - `timeouts` - (Optional) Per-operation timeouts for the container resource. Defaults to `null` (uses provider defaults inherited from `var.timeouts`). Supports:
-  - `create` - (Optional) Timeout for create operations.
-  - `delete` - (Optional) Timeout for delete operations.
-  - `read` - (Optional) Timeout for read operations.
-  - `update` - (Optional) Timeout for update operations.
+  - `create` - (Optional) Timeout for create operations. Defaults to 30 minutes.
+  - `delete` - (Optional) Timeout for delete operations. Defaults to 30 minutes.
+  - `read` - (Optional) Timeout for read operations. Defaults to 5 minutes.
+  - `update` - (Optional) Timeout for update operations. Defaults to 30 minutes.
+
+Example:
+
+```terraform
+containers = {
+  compliance = {
+    name          = "compliance-data"
+    public_access = "None"
+    immutability_policy = {
+      period_since_creation_in_days = 30
+      state                         = "Unlocked"
+    }
+  }
+  legal = {
+    name = "legal-evidence"
+    legal_hold = {
+      tags = ["case2024", "audithold"]
+    }
+  }
+}
+```
 EOT
   nullable    = false
 }
