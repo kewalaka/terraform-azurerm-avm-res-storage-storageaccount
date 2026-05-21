@@ -53,17 +53,17 @@ module "this" {
   parent_id = azapi_resource.resource_group.id
 
   containers = {
-    immutable = {
-      name = "immutable-${random_string.this.result}"
+    compliance = {
+      name = "compliance-data-${random_string.this.result}"
       immutability_policy = {
         period_since_creation_in_days = 30
         state                         = "Unlocked"
       }
     }
-    legalhold = {
-      name = "legalhold-${random_string.this.result}"
+    legal = {
+      name = "legal-evidence-${random_string.this.result}"
       legal_hold = {
-        tags = ["audit2024", "compliancehold"]
+        tags = ["case2024", "audithold"]
       }
     }
   }

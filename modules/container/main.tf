@@ -31,11 +31,7 @@ resource "azapi_resource" "immutability_policy" {
   parent_id = azapi_resource.this.id
   type      = var.container_immutability_policy_resource_type
   body = {
-    properties = {
-      immutabilityPeriodSinceCreationInDays = var.immutability_policy.period_since_creation_in_days
-      allowProtectedAppendWrites            = var.immutability_policy.allow_protected_append_writes
-      allowProtectedAppendWritesAll         = var.immutability_policy.allow_protected_append_writes_all
-    }
+    properties = local.immutability_policy_body
   }
   create_headers         = local.tracing_headers
   delete_headers         = local.tracing_headers

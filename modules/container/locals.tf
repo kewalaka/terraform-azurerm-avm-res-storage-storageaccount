@@ -8,5 +8,10 @@ locals {
     enableNfsV3RootSquash          = var.enable_nfs_v3_root_squash
     immutableStorageWithVersioning = var.immutable_storage_with_versioning
   }
+  immutability_policy_body = var.immutability_policy == null ? null : {
+    immutabilityPeriodSinceCreationInDays = var.immutability_policy.period_since_creation_in_days
+    allowProtectedAppendWrites            = var.immutability_policy.allow_protected_append_writes
+    allowProtectedAppendWritesAll         = var.immutability_policy.allow_protected_append_writes_all
+  }
   tracing_headers = var.tracing_tags_header == null ? null : { "User-Agent" = var.tracing_tags_header }
 }
